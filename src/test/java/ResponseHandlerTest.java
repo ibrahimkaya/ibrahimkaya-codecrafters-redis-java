@@ -1,18 +1,20 @@
+import event.SocketChannelMock;
 import handler.ResponseHandler;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.stubbing.Answer;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@Disabled
 class ResponseHandlerTest {
 
     private ResponseHandler responseHandler;
@@ -25,20 +27,36 @@ class ResponseHandlerTest {
     @Test
     void shouldReturnPingPong() throws IOException {
         String ping = "*1\r\n$4\r\nPING\r\n";
-        InputStream inputStream = new ByteArrayInputStream(ping.getBytes());
-        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        responseHandler.handle(br, outputStream);
-        assertEquals("+PONG\r\n", outputStream.toString());
+        ByteBuffer inputBytes = ByteBuffer.wrap(ping.getBytes());
+        SocketChannelMock socketChannel = new SocketChannelMock();
+        responseHandler.handle(inputBytes, socketChannel);
+        assertEquals("+PONG\r\n", socketChannel.getOutput());
     }
 
     @Test
     void shouldReturnMultiplePingPong() throws IOException {
         String ping = "*2\r\n$4\r\nPING\r\n$4\r\nPING\r\n";
-        InputStream inputStream = new ByteArrayInputStream(ping.getBytes());
-        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        responseHandler.handle(br, outputStream);
-        assertEquals("+PONG\r\n+PONG\r\n", outputStream.toString());
+        ByteBuffer inputBytes = ByteBuffer.wrap(ping.getBytes());
+        SocketChannelMock socketChannel = new SocketChannelMock();
+        responseHandler.handle(inputBytes, socketChannel);
+        assertEquals("+PONG\r\n+PONG\r\n", socketChannel.getOutput());
+    }
+
+    @Test
+    void shouldReturnEchoedStrings() throws IOException {
+        String echo = "*2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n";
+        ByteBuffer inputBytes = ByteBuffer.wrap(echo.getBytes());
+        SocketChannelMock socketChannel = new SocketChannelMock();
+        responseHandler.handle(inputBytes, socketChannel);
+        assertEquals("$3\r\nhey\r\n", socketChannel.getOutput());
+    }
+
+    @Test
+    void shouldReturnEchoedStrings1() throws IOException {
+        String echo = "*2\r\n$4\r\nECHO\r\n$3\r\nrandomStringHey\r\n";
+        ByteBuffer inputBytes = ByteBuffer.wrap(echo.getBytes());
+        SocketChannelMock socketChannel = new SocketChannelMock();
+        responseHandler.handle(inputBytes, socketChannel);
+        assertEquals("$15\r\nrandomStringHey\r\n", socketChannel.getOutput());
     }
 }
