@@ -1,5 +1,6 @@
 import event.EventLoop;
 import event.ReadEvent;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -14,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class WebServer {
+    private static final Logger logger = Logger.getLogger(WebServer.class);
 
     public boolean initialized = false;
     private Selector selector;
@@ -91,13 +93,11 @@ public class WebServer {
         ByteBuffer buffer = (ByteBuffer) key.attachment();
         int bytesRead = client.read(buffer);
         if (bytesRead == -1) {
-            //todo handle close event not here to event loop, beacuse we can close before event loop handle the left over events for this socketChannel
-            // specify the socket channel removed, and remove event loop, just remove client list here and then rest of event loop handles
-    /*        client.close();
-            key.cancel();
-            clients.remove(client);*/
+            eventLoop.add(new ReadEvent(buffer, client, true));
+            clients.remove(client);
         } else {
             eventLoop.add(new ReadEvent(buffer, client));
         }
+        logger.info("active client count is: " + clients.size());
     }
 }
