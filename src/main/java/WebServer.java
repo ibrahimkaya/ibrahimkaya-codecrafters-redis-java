@@ -94,12 +94,13 @@ public class WebServer {
         int bytesRead = client.read(buffer);
         String readString = new String(buffer.array());
         if (bytesRead == -1) {
-            eventLoop.add(new ReadEvent(readString, client, true));
+            //todo why remove event create bug, should socket closed enough ?
+            // eventLoop.add(new ReadEvent(readString, client, true));
             clients.remove(client);
         } else {
             eventLoop.add(new ReadEvent(readString, client));
+            buffer.flip();
         }
-        buffer.clear();
         logger.info("active client count is: " + clients.size());
     }
 }
