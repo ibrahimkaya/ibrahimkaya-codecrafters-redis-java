@@ -92,12 +92,14 @@ public class WebServer {
         SocketChannel client = (SocketChannel) key.channel();
         ByteBuffer buffer = (ByteBuffer) key.attachment();
         int bytesRead = client.read(buffer);
+        String readString = new String(buffer.array());
         if (bytesRead == -1) {
-            eventLoop.add(new ReadEvent(buffer, client, true));
+            eventLoop.add(new ReadEvent(readString, client, true));
             clients.remove(client);
         } else {
-            eventLoop.add(new ReadEvent(buffer, client));
+            eventLoop.add(new ReadEvent(readString, client));
         }
+        buffer.clear();
         logger.info("active client count is: " + clients.size());
     }
 }

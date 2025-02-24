@@ -39,7 +39,7 @@ public class EventLoop implements Runnable {
             if (TRUE.equals(event.closeEvent())) {
                 event.client().close();
             } else {
-                responseHandler.handle(event.readByte(), event.client());
+                responseHandler.handle(event.readString(), event.client());
             }
         }
     }

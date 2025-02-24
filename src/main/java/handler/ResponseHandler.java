@@ -3,7 +3,6 @@ package handler;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -26,12 +25,11 @@ public class ResponseHandler {
     //line handler'a bir stage ekleyebilirsin, örneğin ECHO gibi, bunu iteratif şekilde line handler'a paslarız while
     // içerisinden, eğer bir satır output yazarda mevcut döngüsünden çıkarsa o zaman tekrar sıfırdan yeni command execute eder gibi davranır
     //örneğin string okudu -> echo oldu, durumu echoya setler bırakır -> durum echo ise mevcut line'ı basar while içinde ve state'i sıfırlar
-    public void handle(ByteBuffer readByte, WritableByteChannel socketChannel) throws IOException {
-        Iterator<String> lineIterator = new String(readByte.array()).lines().iterator();
+    public void handle(String readedString, WritableByteChannel socketChannel) throws IOException {
+        Iterator<String> lineIterator = readedString.lines().iterator();
         while (lineIterator.hasNext()) {
             lineHandler(socketChannel, lineIterator);
         }
-        readByte.flip();
     }
 
     private enum State {
